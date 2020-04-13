@@ -7,7 +7,7 @@
         </tab>
         <section id="sebwite_sidebar" showInDefault="1">
             <tab>sebwite</tab>
-            <label>Sidebar</label>
+            <label>Sidebar CMS Menu</label>
             <resource>Magento_Config::config</resource>
             <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0"
                    showInStore="0">
@@ -16,7 +16,11 @@
                        showInStore="0">
                     <label>Is Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>				
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Title text above menu</label>
+                </field>
                 <field id="category" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0"
                        showInStore="0">
                     <label>Select Sidebar Category</label>
@@ -26,7 +30,15 @@
                        showInStore="0">
                     <label>Select Category Depth</label>
                     <source_model>Sebwite\Sidebar\Model\Config\Source\Depth</source_model>
-                </field>				
+                </field>
+                <field id="open" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Open to reveal active link on page load?</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="fixed">1</field>
+                    </depends>
+                </field>
             </group>
         </section>
     </system>

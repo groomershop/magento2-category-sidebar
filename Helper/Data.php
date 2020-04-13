@@ -16,6 +16,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 	const XML_PATH_ENABLED    		 			= 'general/enabled';
 	const XML_PATH_CATEGORY    		 			= 'general/category';
 	const XML_PATH_CATEGORY_DEPTH_LEVEL    		= 'general/categorydepth';
+	const XML_PATH_TITLE_TEXT    		        = 'general/title';
+	const XML_PATH_OPEN_ON_LOAD    		        = 'general/open';
 	
 	
 	/**
@@ -41,7 +43,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getConfigPath(
         $xmlPath,
-        $section = 'sebwitete_sidebar'
+        $section = 'sebwite_sidebar'
     ) {
         return $section . '/' . $xmlPath;
     }
@@ -81,6 +83,32 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->scopeConfig->getValue(
             $this->getConfigPath(self::XML_PATH_CATEGORY_DEPTH_LEVEL),
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }	
+    
+     /**
+     * Get title text
+     *
+     * @return string|null
+     */
+    public function getTitleText()
+    {
+        return $this->scopeConfig->getValue(
+            $this->getConfigPath(self::XML_PATH_TITLE_TEXT),
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }	
+    
+     /**
+     * Get is open on load?
+     *
+     * @return string|null
+     */
+    public function isOpenOnLoad()
+    {
+        return $this->scopeConfig->getValue(
+            $this->getConfigPath(self::XML_PATH_OPEN_ON_LOAD),
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
     }	

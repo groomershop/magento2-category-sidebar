@@ -37,7 +37,19 @@ class Depth implements \Magento\Framework\Option\ArrayInterface {
             [
                 'value' => 5,
                 'label' => __('5'),
-            ],			
+            ],
+            [
+                'value' => 6,
+                'label' => __('6'),
+            ],
+            [
+                'value' => 7,
+                'label' => __('7'),
+            ],
+            [
+                'value' => 8,
+                'label' => __('8'),
+            ],
         ];
     }
 }

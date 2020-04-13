@@ -15,24 +15,16 @@ use Magento\Framework\View\Element\Template;
 class Sidebar extends Template
 {
 
-    /**
-     * @var \Magento\Catalog\Helper\Category
-     */
+    /** * @var \Magento\Catalog\Helper\Category */
     protected $_categoryHelper;
 
-    /**
-     * @var \Magento\Framework\Registry
-     */
+    /** * @var \Magento\Framework\Registry */
     protected $_coreRegistry;
 
-    /**
-     * @var \Magento\Catalog\Model\Indexer\Category\Flat\State
-     */
+    /** * @var \Magento\Catalog\Model\Indexer\Category\Flat\State */
     protected $categoryFlatConfig;
 
-    /**
-     * @var \Magento\Catalog\Model\CategoryFactory
-     */
+    /** * @var \Magento\Catalog\Model\CategoryFactory */
     protected $_categoryFactory;
 
     /** @var \Magento\Catalog\Model\ResourceModel\Product\Collection */
@@ -40,7 +32,10 @@ class Sidebar extends Template
 	
     /** @var \Magento\Catalog\Helper\Output */
     private $helper;
-	
+
+	/** @var \Sebwite\Sidebar\Helper\Data */
+    private $_dataHelper;
+
     /**
      * @param Template\Context                                        $context
      * @param \Magento\Catalog\Helper\Category                        $categoryHelper
@@ -57,7 +52,6 @@ class Sidebar extends Template
         \Magento\Framework\Registry $registry,
         \Magento\Catalog\Model\Indexer\Category\Flat\State $categoryFlatState,
         \Magento\Catalog\Model\CategoryFactory $categoryFactory,
-		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Catalog\Model\ResourceModel\Product\Collection $productCollectionFactory,
         \Magento\Catalog\Helper\Output $helper,
 		\Sebwite\Sidebar\Helper\Data $dataHelper,
@@ -74,11 +68,6 @@ class Sidebar extends Template
 
         parent::__construct($context, $data);
     }
-	
-    /*
-    * Get owner name
-    * @return string
-    */
 	
     /**
      * Get all categories
@@ -165,7 +154,7 @@ class Sidebar extends Template
 
             $childCategories = $this->getSubcategories($category);
 
-            if ( count($childCategories) > 0 )
+            if (is_object($childCategories) && count($childCategories) > 0 )
             {
 
                 $html .= '<ul class="o-list o-list--unstyled">';
@@ -205,13 +194,11 @@ class Sidebar extends Template
 
     /**
      * Retrieve subcategories
-     * DEPRECATED
 	 *
      * @param $category
      *
      * @return array
      */
-	 
     public function getSubcategories($category)
     {
         if ( $this->categoryFlatConfig->isFlatEnabled() && $category->getUseFlatResource() )
@@ -219,7 +206,7 @@ class Sidebar extends Template
             return (array)$category->getChildrenNodes();
         }
 
-        return $category->getChildrenCategories();
+        return $category->getChildren();
     }
 	
 
@@ -276,5 +263,35 @@ class Sidebar extends Template
     public function getCategoryUrl($category)
     {
         return $this->_categoryHelper->getCategoryUrl($category);
+    }
+
+    /**
+     * Return Is Enabled config option
+     *
+     * @return string
+     */
+    public function isEnabled()
+    {
+        return $this->_dataHelper->isEnabled();
+    }
+
+    /**
+     * Return Title Text for menu
+     *
+     * @return string
+     */
+    public function getTitleText()
+    {
+        return $this->_dataHelper->getTitleText();
+    }
+
+    /**
+     * Return Menu Open config option
+     *
+     * @return string
+     */
+    public function isOpenOnLoad()
+    {
+        return $this->_dataHelper->isOpenOnLoad();
     }
 }

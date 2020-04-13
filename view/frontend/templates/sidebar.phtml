@@ -4,12 +4,16 @@
  *
  * @var $block Sebwite\Sidebar\Block\Sidebar
  */
-$categories = $block->getCategories();
-$brands     = $block->getBrands();
+$isEnabled     = $block->isEnabled();
+$titleText     = $block->getTitleText();
+$isOpenOnLoad  = $block->isOpenOnLoad();
+$categories    = $block->getCategories();
+
+if ($isEnabled) {
 ?>
 
-<h3><?php echo __('Categories'); ?></h3>
-<ul class="o-list">
+    <h3><?= $titleText; ?></h3>
+    <ul class="o-list">
 
     <?php
     // Loop through categories
@@ -26,8 +30,18 @@ $brands     = $block->getBrands();
             <?php echo $block->getChildCategoryView($category); ?>
         </li>
     <?php endforeach; ?>
-</ul>
-<script type="text/javascript">
-	/* Simply invoke iffe of sidebarmodule */
-	require(['jquery','sidebarmodule'], function ($) {});
-</script>
+    </ul>
+<?php if ($isOpenOnLoad) { ?>
+    <script>
+        require(['jquery', 'sidebarmodule'], function($) {
+            $('.is-active').parents('ul').css('display','block');
+            $('.is-active').parents('li').addClass('active');
+            $('.is-active').parents('li').find('> span i').removeClass('fa-plus').addClass('fa-minus');
+        });
+    </script>
+<?php } else { ?>
+    <script>
+        require(['jquery', 'sidebarmodule'], function($) {});
+    </script>
+<?php }
+} ?>
