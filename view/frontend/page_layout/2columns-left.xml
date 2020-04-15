@@ -9,7 +9,7 @@
     <update handle="2columns-left"/>
 
     <referenceContainer name="columns">
-        <referenceContainer name="sidebar.main" htmlTag="div" htmlClass="c-sidebar c-sidebar--categories">
+        <referenceContainer name="sidebar.main">
             <block class="Sebwite\Sidebar\Block\Sidebar" name="category-sidebar" template="Sebwite_Sidebar::sidebar.phtml"/>
         </referenceContainer>
     </referenceContainer>
