@@ -4,6 +4,10 @@ use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
 use Magento\Catalog\Model\ResourceModel\Product;
 use Magento\Framework\View\Element\Template;
 
+function endsWith($haystack, $needle) {
+    return substr_compare($haystack, $needle, -strlen($needle)) === 0;
+}
+
 /**
  * Class:Sidebar
  * Sebwite\Sidebar\Block
@@ -156,15 +160,7 @@ class Sidebar extends Template
         return $category->getChildren();
     }
 
-
-    /**
-     * Get current category
-     *
-     * @param \Magento\Catalog\Model\Category $category
-     *
-     * @return Category
-     */
-    public function isActive($category)
+    public function isCurrentCategoryOrParentOfCurrentCategory($category)
     {
         $activeCategory = $this->_coreRegistry->registry('current_category');
         $activeProduct  = $this->_coreRegistry->registry('current_product');
@@ -198,6 +194,39 @@ class Sidebar extends Template
 
         // Fallback - If Flat categories is not enabled the active category does not give an id
         return (($category->getName() == $activeCategory->getName()) ? true : false);
+    }
+
+    public function isCurrentCategory($category)
+    {
+        $currentCategory = $this->_coreRegistry->registry('current_category');
+        if (!$currentCategory) {
+            return false;
+        }
+
+        if ($currentCategory->getId() != $category->getId()) {
+            return false;
+        }
+
+        $categoryPathSuffix = join(
+            array_reverse(
+                array_map(
+                    function($c) {
+                        return $c->getId();
+                    },
+                    $category->getPath()
+                )
+            ),
+            "/"
+        );
+        return endsWith($currentCategory->getPath(), $categoryPathSuffix);
+    }
+
+    /**
+     * @deprecated
+     */
+    public function isActive($category)
+    {
+        return $this->isCurrentCategoryOrParentOfCurrentCategory($category);
     }
 
     /**
