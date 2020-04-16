@@ -162,38 +162,39 @@ class Sidebar extends Template
 
     public function isCurrentCategoryOrParentOfCurrentCategory($category)
     {
-        $activeCategory = $this->_coreRegistry->registry('current_category');
-        $activeProduct  = $this->_coreRegistry->registry('current_product');
+        $currentCategory = $this->_coreRegistry->registry('current_category');
+        $currentProduct  = $this->_coreRegistry->registry('current_product');
 
-        if ( !$activeCategory )
+        if ( !$currentCategory )
         {
-
             // Check if we're on a product page
-            if ( $activeProduct !== null )
+            if ( $currentProduct !== null )
             {
-                return in_array($category->getId(), $activeProduct->getCategoryIds());
+                return in_array($category->getId(), $currentProduct->getCategoryIds());
             }
 
             return false;
         }
 
-        // Check if this is the active category
-        if ( $this->categoryFlatConfig->isFlatEnabled() && $category->getUseFlatResource() AND
-            $category->getId() == $activeCategory->getId()
-        )
-        {
-            return true;
+        if ($currentCategory->getId() != $category->getId()) {
+            return false;
         }
 
-        // Check if a subcategory of this category is active
-        $childrenIds = $category->getAllChildren(true);
-        if ( !is_null($childrenIds) AND in_array($activeCategory->getId(), $childrenIds) )
-        {
-            return true;
-        }
+        $categoryPath = join(
+            array_reverse(
+                array_map(
+                    function($c) {
+                        return $c->getId();
+                    },
+                    $category->getPath()
+                )
+            ),
+            "/"
+        );
 
-        // Fallback - If Flat categories is not enabled the active category does not give an id
-        return (($category->getName() == $activeCategory->getName()) ? true : false);
+        // If the current category's path includes the whole path of that given category path,
+        // it probably means the current category is either that directory, or a child of it.
+        return strpos('/' . $currentCategory->getPath() . '/', '/' . $categoryPath . '/') !== false;
     }
 
     public function isCurrentCategory($category)
@@ -207,7 +208,7 @@ class Sidebar extends Template
             return false;
         }
 
-        $categoryPathSuffix = join(
+        $categoryPath = join(
             array_reverse(
                 array_map(
                     function($c) {
@@ -218,7 +219,10 @@ class Sidebar extends Template
             ),
             "/"
         );
-        return endsWith($currentCategory->getPath(), $categoryPathSuffix);
+
+        // If the current category's path ends with that given category's path,
+        // it probably means we're at the same path.
+        return endsWith($currentCategory->getPath(), $categoryPath);
     }
 
     /**
