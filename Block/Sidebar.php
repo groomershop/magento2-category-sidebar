@@ -84,7 +84,7 @@ class Sidebar extends Template
      */
     public function getCategories($sorted = false, $asCollection = false, $toLoad = true)
     {
-        $cacheKey = sprintf('%d-%d-%d-%d', $this->getSelectedRootCategory(), $sorted, $asCollection, $toLoad);
+        $cacheKey = sprintf('%d-%d-%d-%d', $this->getSelectedRootCategoryId(), $sorted, $asCollection, $toLoad);
         if ( isset($this->_storeCategories[ $cacheKey ]) )
         {
             return $this->_storeCategories[ $cacheKey ];
@@ -93,11 +93,11 @@ class Sidebar extends Template
         /**
          * Check if parent node of the store still exists
          */
-        $category = $this->_categoryFactory->create();
+        $categoryCollection = $this->_categoryFactory->create();
 
 		$categoryDepthLevel = $this->_dataHelper->getCategoryDepthLevel();
 
-        $storeCategories = $category->getCategories($this->getSelectedRootCategory(), $recursionLevel = $categoryDepthLevel, $sorted, $asCollection, $toLoad);
+        $storeCategories = $categoryCollection->getCategories($this->getSelectedRootCategoryId(), $recursionLevel = $categoryDepthLevel, $sorted, $asCollection, $toLoad);
 
         $this->_storeCategories[ $cacheKey ] = $storeCategories;
 
@@ -105,17 +105,17 @@ class Sidebar extends Template
     }
 
     /**
-     * getSelectedRootCategory method
+     * getSelectedRootCategoryId method
      *
-     * @return int|mixed
+     * @return int
      */
-    public function getSelectedRootCategory()
+    public function getSelectedRootCategoryId()
     {
-        $categoryMode = $this->_scopeConfig->getValue(
+        $rootCategoryId = $this->_scopeConfig->getValue(
             'sebwite_sidebar/general/category'
         );
 
-		if ( $categoryMode == 'current_category_children'){
+		if ( $rootCategoryId == 'current_category_children'){
 			$currentCategory = $this->_coreRegistry->registry('current_category');
 			if($currentCategory){
 				return $currentCategory->getId();
@@ -123,24 +123,24 @@ class Sidebar extends Template
 			return 1;
 		}
 
-		if ( $categoryMode == 'current_category_parent_children'){
+		if ( $rootCategoryId == 'current_category_parent_children'){
 			$currentCategory = $this->_coreRegistry->registry('current_category');
 			if($currentCategory){
 				$currentCategoryPath = $currentCategory->getPath();
 				$currentCategoryPathArray = explode("/", $currentCategoryPath);
 				if(isset($currentCategoryPath)){
-					return $currentCategoryPathArray[2];
+					return array_reverse($currentCategoryPathArray)[2] ?: 1;
 				}
 			}
 			return 1;
 		}
 
-        if ( $categoryMode === null )
+        if ( $rootCategoryId === null )
         {
             return 1;
         }
 
-        return $categoryMode;
+        return $rootCategoryId;
     }
 
     /**
@@ -173,10 +173,6 @@ class Sidebar extends Template
                 return in_array($category->getId(), $currentProduct->getCategoryIds());
             }
 
-            return false;
-        }
-
-        if ($currentCategory->getId() != $category->getId()) {
             return false;
         }
 
