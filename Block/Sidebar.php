@@ -107,11 +107,11 @@ class Sidebar extends Template
      */
     public function getSelectedRootCategory()
     {
-        $category = $this->_scopeConfig->getValue(
+        $categoryMode = $this->_scopeConfig->getValue(
             'sebwite_sidebar/general/category'
         );
 
-		if ( $category == 'current_category_children'){
+		if ( $categoryMode == 'current_category_children'){
 			$currentCategory = $this->_coreRegistry->registry('current_category');
 			if($currentCategory){
 				return $currentCategory->getId();
@@ -119,24 +119,24 @@ class Sidebar extends Template
 			return 1;
 		}
 
-		if ( $category == 'current_category_parent_children'){
+		if ( $categoryMode == 'current_category_parent_children'){
 			$currentCategory = $this->_coreRegistry->registry('current_category');
 			if($currentCategory){
-				$topLevelParent = $currentCategory->getPath();
-				$topLevelParentArray = explode("/", $topLevelParent);
-				if(isset($topLevelParent)){
-					return $topLevelParentArray[2];
+				$currentCategoryPath = $currentCategory->getPath();
+				$currentCategoryPathArray = explode("/", $currentCategoryPath);
+				if(isset($currentCategoryPath)){
+					return $currentCategoryPathArray[2];
 				}
 			}
 			return 1;
 		}
 
-        if ( $category === null )
+        if ( $categoryMode === null )
         {
             return 1;
         }
 
-        return $category;
+        return $categoryMode;
     }
 
     /**
