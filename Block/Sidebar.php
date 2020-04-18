@@ -127,9 +127,18 @@ class Sidebar extends Template
 			$currentCategory = $this->_coreRegistry->registry('current_category');
 			if($currentCategory){
 				$currentCategoryPath = $currentCategory->getPath();
-				$currentCategoryPathArray = explode("/", $currentCategoryPath);
 				if(isset($currentCategoryPath)){
-					return array_reverse($currentCategoryPathArray)[2] ?: 1;
+                    $currentCategoryPathArray = explode("/", $currentCategoryPath);
+                    $parentId = array_reverse($currentCategoryPathArray)[2] ?: 1;
+                    // If there's no parent, then show current category's children instead
+                    //
+                    // This is because in most shops the "Default Category" children
+                    // are shown in the header main navigation anyways,
+                    // So there's no big need of showing them here.
+                    if ($parentId == 1) {
+                        return $currentCategory->getId();
+                    }
+					return $parentId;
 				}
 			}
 			return 1;
