@@ -8,8 +8,9 @@ $isEnabled     = $block->isEnabled();
 $titleText     = $block->getTitleText();
 $isOpenOnLoad  = $block->isOpenOnLoad();
 $categories    = $block->getCategories();
+$maxLevel = $block->getCategoryDepthLevel();
 
-function renderCategoryListElement($block, $category, $level = 0)
+function renderCategoryListElement($block, $category, $maxLevel, $level = 0)
 {
     $isActive = $block->isCurrentCategoryOrParentOfCurrentCategory($category);
     $isCurrent = $block->isCurrentCategory($category);
@@ -17,16 +18,14 @@ function renderCategoryListElement($block, $category, $level = 0)
     $html = '<li class="level' . $level . ($isActive ? ' active' : '') . '">';
     $html .= '<a href="' . $block->getCategoryUrl($category) . '" title="' . $category->getName() . '" class="' . ($isActive ? 'is-active' : '') . ' ' . ($isCurrent ? 'is-current' : '') . '">' . $category->getName() . '</a>';
 
-    if ($category->hasChildren()) {
+    if ($category->hasChildren() && $level < $maxLevel) {
         if ($isActive) {
             $html .= '<span class="expanded"><i class="fa fa-minus"></i></span>';
         } else {
             $html .= '<span class="expand"><i class="fa fa-plus"></i></span>';
         }
-    }
 
-    if ($category->hasChildren()) {
-        $html .= renderCategoryChildren($block, $category, $level + 1);
+        $html .= renderCategoryChildren($block, $category, $maxLevel, $level + 1);
     }
 
     $html .= '</li>';
@@ -34,14 +33,10 @@ function renderCategoryListElement($block, $category, $level = 0)
     return $html;
 }
 
-function renderCategoryChildren($block, $category, $level = 0)
+function renderCategoryChildren($block, $category, $maxLevel, $level = 0)
 {
-    if (!$category->hasChildren()) {
-        return '';
-    }
-
     $childCategories = $block->getSubcategories($category);
-    if (!is_object($childCategories) || count($childCategories) == 0) {
+    if (count($childCategories) == 0) {
         return '';
     }
 
@@ -61,7 +56,7 @@ if ($isEnabled && count($categories) > 0) {
     <ul class="o-list">
         <?php
         foreach ($categories as $category) {
-            echo renderCategoryListElement($block, $category);
+            echo renderCategoryListElement($block, $category, $maxLevel);
         } ?>
     </ul>
 <?php if ($isOpenOnLoad) { ?>

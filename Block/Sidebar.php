@@ -1,7 +1,5 @@
 <?php namespace Sebwite\Sidebar\Block;
 
-use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
-use Magento\Catalog\Model\ResourceModel\Product;
 use Magento\Framework\View\Element\Template;
 
 function array_get(&$array, $key)
@@ -44,16 +42,10 @@ class Sidebar extends Template
     protected $_coreRegistry;
 
     /** * @var \Magento\Catalog\Model\Indexer\Category\Flat\State */
-    protected $categoryFlatConfig;
+    protected $_categoryFlatState;
 
-    /** * @var \Magento\Catalog\Model\CategoryFactory */
+    /** * @var \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory */
     protected $_categoryFactory;
-
-    /** @var \Magento\Catalog\Model\ResourceModel\Product\Collection */
-    protected $_productCollectionFactory;
-
-    /** @var \Magento\Catalog\Helper\Output */
-    private $helper;
 
     /** @var \Sebwite\Sidebar\Helper\Data */
     private $_dataHelper;
@@ -63,9 +55,7 @@ class Sidebar extends Template
      * @param \Magento\Catalog\Helper\Category                        $categoryHelper
      * @param \Magento\Framework\Registry                             $registry
      * @param \Magento\Catalog\Model\Indexer\Category\Flat\State      $categoryFlatState
-     * @param \Magento\Catalog\Model\CategoryFactory                  $categoryFactory
-     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $productCollectionFactory
-     * @param \Magento\Catalog\Helper\Output                          $helper
+     * @param \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory                  $categoryFactory
      * @param array                                                   $data
      */
     public function __construct(
@@ -73,21 +63,22 @@ class Sidebar extends Template
         \Magento\Catalog\Helper\Category $categoryHelper,
         \Magento\Framework\Registry $registry,
         \Magento\Catalog\Model\Indexer\Category\Flat\State $categoryFlatState,
-        \Magento\Catalog\Model\CategoryFactory $categoryFactory,
-        \Magento\Catalog\Model\ResourceModel\Product\Collection $productCollectionFactory,
-        \Magento\Catalog\Helper\Output $helper,
+        \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryFactory,
         \Sebwite\Sidebar\Helper\Data $dataHelper,
         $data = [ ]
     ) {
         $this->_categoryHelper           = $categoryHelper;
         $this->_coreRegistry             = $registry;
-        $this->categoryFlatConfig        = $categoryFlatState;
+        $this->_categoryFlatState        = $categoryFlatState;
         $this->_categoryFactory          = $categoryFactory;
-        $this->_productCollectionFactory = $productCollectionFactory;
-        $this->helper                    = $helper;
         $this->_dataHelper = $dataHelper;
 
         parent::__construct($context, $data);
+    }
+
+    public function getCategoryDepthLevel()
+    {
+        return $this->_dataHelper->getCategoryDepthLevel();
     }
 
     /**
@@ -106,9 +97,18 @@ class Sidebar extends Template
         }
 
         $rootCategoryId = $this->getRootCategoryId();
-        $collection = $this->_categoryFactory->create();
-        $depthLevel = $this->_dataHelper->getCategoryDepthLevel();
-        $categories = $collection->getCategories($rootCategoryId, $depthLevel)->getNodes();
+        $collection = $this->_categoryFactory
+            ->create()
+            ->addAttributeToSelect('*')
+            ->addIsActiveFilter();
+        $rootCategory = $rootCategoryId == 1
+            ? array_values(
+                $collection->addRootLevelFilter()->getItems()
+            )[0]
+            : $collection->getItems()[$rootCategoryId];
+        $categories = $rootCategory
+            ->getChildrenCategories()
+            ->getItems();
 
         if ($this->_dataHelper->getSidebarCategory() == 'current_category_parent_siblings_and_children') {
             if (!$currentCategory) {
@@ -124,7 +124,7 @@ class Sidebar extends Template
                         ?: (
                             array_get($categories, 2)
                             ?: array_get($categories, 1)
-                        )->getAllChildNodes()[ $currentCategoryId ];
+                        )->getChildrenCategories()->getItems()[ $currentCategoryId ];
                     $categories = [ $rootCategory ];
                 } else {
                     $categories = [
@@ -177,11 +177,9 @@ class Sidebar extends Template
      */
     public function getSubcategories($category)
     {
-        if ($this->categoryFlatConfig->isFlatEnabled() && $category->getUseFlatResource()) {
-            return (array)$category->getChildrenNodes();
-        }
+        // TODO check if it works on flat category config
 
-        return $category->getChildren();
+        return $category->getChildrenCategories()->getItems();
     }
 
     public function isCurrentCategoryOrParentOfCurrentCategory($category)
@@ -198,21 +196,9 @@ class Sidebar extends Template
             return false;
         }
 
-        $categoryPath = join(
-            array_reverse(
-                array_map(
-                    function ($c) {
-                        return $c->getId();
-                    },
-                    $category->getPath()
-                )
-            ),
-            "/"
-        );
-
         // If the current category's path includes the whole path of that given category path,
         // it probably means the current category is either that directory, or a child of it.
-        return strpos('/' . $currentCategory->getPath() . '/', '/' . $categoryPath . '/') !== false;
+        return strpos('/' . $currentCategory->getPath() . '/', '/' . $category->getPath() . '/') !== false;
     }
 
     public function isCurrentCategory($category)
@@ -226,21 +212,9 @@ class Sidebar extends Template
             return false;
         }
 
-        $categoryPath = join(
-            array_reverse(
-                array_map(
-                    function ($c) {
-                        return $c->getId();
-                    },
-                    $category->getPath()
-                )
-            ),
-            "/"
-        );
-
         // If the current category's path ends with that given category's path,
         // it probably means we're at the same path.
-        return endsWith($currentCategory->getPath(), $categoryPath);
+        return endsWith($currentCategory->getPath(), $category->getPath());
     }
 
     /**
