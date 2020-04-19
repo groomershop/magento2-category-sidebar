@@ -4,7 +4,8 @@ use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
 use Magento\Catalog\Model\ResourceModel\Product;
 use Magento\Framework\View\Element\Template;
 
-function endsWith($haystack, $needle) {
+function endsWith($haystack, $needle)
+{
     return substr_compare($haystack, $needle, -strlen($needle)) === 0;
 }
 
@@ -37,7 +38,7 @@ class Sidebar extends Template
     /** @var \Magento\Catalog\Helper\Output */
     private $helper;
 
-	/** @var \Sebwite\Sidebar\Helper\Data */
+    /** @var \Sebwite\Sidebar\Helper\Data */
     private $_dataHelper;
 
     /**
@@ -58,17 +59,16 @@ class Sidebar extends Template
         \Magento\Catalog\Model\CategoryFactory $categoryFactory,
         \Magento\Catalog\Model\ResourceModel\Product\Collection $productCollectionFactory,
         \Magento\Catalog\Helper\Output $helper,
-		\Sebwite\Sidebar\Helper\Data $dataHelper,
+        \Sebwite\Sidebar\Helper\Data $dataHelper,
         $data = [ ]
-    )
-    {
+    ) {
         $this->_categoryHelper           = $categoryHelper;
         $this->_coreRegistry             = $registry;
         $this->categoryFlatConfig        = $categoryFlatState;
         $this->_categoryFactory          = $categoryFactory;
         $this->_productCollectionFactory = $productCollectionFactory;
         $this->helper                    = $helper;
-		$this->_dataHelper = $dataHelper;
+        $this->_dataHelper = $dataHelper;
 
         parent::__construct($context, $data);
     }
@@ -85,8 +85,7 @@ class Sidebar extends Template
     public function getCategories($sorted = false, $asCollection = false, $toLoad = true)
     {
         $cacheKey = sprintf('%d-%d-%d-%d', $this->getSelectedRootCategoryId(), $sorted, $asCollection, $toLoad);
-        if ( isset($this->_storeCategories[ $cacheKey ]) )
-        {
+        if (isset($this->_storeCategories[ $cacheKey ])) {
             return $this->_storeCategories[ $cacheKey ];
         }
 
@@ -95,7 +94,7 @@ class Sidebar extends Template
          */
         $categoryCollection = $this->_categoryFactory->create();
 
-		$categoryDepthLevel = $this->_dataHelper->getCategoryDepthLevel();
+        $categoryDepthLevel = $this->_dataHelper->getCategoryDepthLevel();
 
         $storeCategories = $categoryCollection->getCategories($this->getSelectedRootCategoryId(), $recursionLevel = $categoryDepthLevel, $sorted, $asCollection, $toLoad);
 
@@ -115,19 +114,19 @@ class Sidebar extends Template
             'sebwite_sidebar/general/category'
         );
 
-		if ( $rootCategoryId == 'current_category_children'){
-			$currentCategory = $this->_coreRegistry->registry('current_category');
-			if($currentCategory){
-				return $currentCategory->getId();
-			}
-			return 1;
-		}
+        if ($rootCategoryId == 'current_category_children') {
+            $currentCategory = $this->_coreRegistry->registry('current_category');
+            if ($currentCategory) {
+                return $currentCategory->getId();
+            }
+            return 1;
+        }
 
-		if ( $rootCategoryId == 'current_category_parent_children'){
-			$currentCategory = $this->_coreRegistry->registry('current_category');
-			if($currentCategory){
-				$currentCategoryPath = $currentCategory->getPath();
-				if(isset($currentCategoryPath)){
+        if ($rootCategoryId == 'current_category_parent_children') {
+            $currentCategory = $this->_coreRegistry->registry('current_category');
+            if ($currentCategory) {
+                $currentCategoryPath = $currentCategory->getPath();
+                if (isset($currentCategoryPath)) {
                     $currentCategoryPathArray = explode("/", $currentCategoryPath);
                     $parentId = array_reverse($currentCategoryPathArray)[2] ?: 1;
                     // If there's no parent, then show current category's children instead
@@ -138,14 +137,13 @@ class Sidebar extends Template
                     if ($parentId == 1) {
                         return $currentCategory->getId();
                     }
-					return $parentId;
-				}
-			}
-			return 1;
-		}
+                    return $parentId;
+                }
+            }
+            return 1;
+        }
 
-        if ( $rootCategoryId === null )
-        {
+        if ($rootCategoryId === null) {
             return 1;
         }
 
@@ -154,15 +152,14 @@ class Sidebar extends Template
 
     /**
      * Retrieve subcategories
-	 *
+     *
      * @param $category
      *
      * @return array
      */
     public function getSubcategories($category)
     {
-        if ( $this->categoryFlatConfig->isFlatEnabled() && $category->getUseFlatResource() )
-        {
+        if ($this->categoryFlatConfig->isFlatEnabled() && $category->getUseFlatResource()) {
             return (array)$category->getChildrenNodes();
         }
 
@@ -174,11 +171,9 @@ class Sidebar extends Template
         $currentCategory = $this->_coreRegistry->registry('current_category');
         $currentProduct  = $this->_coreRegistry->registry('current_product');
 
-        if ( !$currentCategory )
-        {
+        if (!$currentCategory) {
             // Check if we're on a product page
-            if ( $currentProduct !== null )
-            {
+            if ($currentProduct !== null) {
                 return in_array($category->getId(), $currentProduct->getCategoryIds());
             }
 
@@ -188,7 +183,7 @@ class Sidebar extends Template
         $categoryPath = join(
             array_reverse(
                 array_map(
-                    function($c) {
+                    function ($c) {
                         return $c->getId();
                     },
                     $category->getPath()
@@ -216,7 +211,7 @@ class Sidebar extends Template
         $categoryPath = join(
             array_reverse(
                 array_map(
-                    function($c) {
+                    function ($c) {
                         return $c->getId();
                     },
                     $category->getPath()

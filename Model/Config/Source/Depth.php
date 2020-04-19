@@ -8,7 +8,8 @@
  * @package     Sebwite\Sidebar
  * @copyright   Copyright (c) 2016, vvasiloud. All rights reserved
  */
-class Depth implements \Magento\Framework\Option\ArrayInterface {
+class Depth implements \Magento\Framework\Option\ArrayInterface
+{
 
     /**
      * Return array of options as value-label pairs

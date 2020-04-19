@@ -12,39 +12,29 @@ $categories    = $block->getCategories();
 function getChildCategoryView($block, $category, $html = '', $level = 1)
 {
     // Check if category has children
-    if ( $category->hasChildren() )
-    {
-
+    if ($category->hasChildren()) {
         $childCategories = $block->getSubcategories($category);
 
-        if (is_object($childCategories) && count($childCategories) > 0 )
-        {
-
+        if (is_object($childCategories) && count($childCategories) > 0) {
             $html .= '<ul class="o-list o-list--unstyled">';
 
             // Loop through children categories
-            foreach ( $childCategories as $childCategory )
-            {
+            foreach ($childCategories as $childCategory) {
                 $isActive = $block->isCurrentCategoryOrParentOfCurrentCategory($childCategory);
                 $isCurrent = $block->isCurrentCategory($childCategory);
 
                 $html .= '<li class="level' . $level . ($isActive ? ' active' : '') . '">';
                 $html .= '<a href="' . $block->getCategoryUrl($childCategory) . '" title="' . $childCategory->getName() . '" class="' . ($isActive ? 'is-active' : '') . ' ' . ($isCurrent ? 'is-current' : '') . '">' . $childCategory->getName() . '</a>';
 
-                if ( $childCategory->hasChildren() )
-                {
-                    if ( $isActive )
-                    {
+                if ($childCategory->hasChildren()) {
+                    if ($isActive) {
                         $html .= '<span class="expanded"><i class="fa fa-minus"></i></span>';
-                    }
-                    else
-                    {
+                    } else {
                         $html .= '<span class="expand"><i class="fa fa-plus"></i></span>';
                     }
                 }
 
-                if ( $childCategory->hasChildren() )
-                {
+                if ($childCategory->hasChildren()) {
                     $html .= getChildCategoryView($block, $childCategory, '', ($level + 1));
                 }
 
@@ -58,20 +48,20 @@ function getChildCategoryView($block, $category, $html = '', $level = 1)
 }
 
 if ($isEnabled) {
-?>
+    ?>
 
     <h3><?= $titleText; ?></h3>
     <ul class="o-list">
 
     <?php
     // Loop through categories
-    foreach ( $categories as $category ) :
+    foreach ($categories as $category) :
         ?>
         <li class="level0<?php echo($block->isCurrentCategoryOrParentOfCurrentCategory($category) ? ' active' : ''); ?>">
             <a href="<?php echo $block->getCategoryUrl($category); ?>" title="<?php echo $category->getName(); ?>" class="<?php echo($block->isCurrentCategoryOrParentOfCurrentCategory($category) ? ' active' : ''); ?>">
                 <?php echo $category->getName(); ?>
             </a>
-            <?php if ( $category->hasChildren() ) : ?>
+            <?php if ($category->hasChildren()) : ?>
                 <span class="expand"><?php echo $block->isCurrentCategoryOrParentOfCurrentCategory($category) ? '<i class="fa fa-minus"></i>' : '<i class="fa fa-plus"></i>'; ?></span>
             <?php endif; ?>
 

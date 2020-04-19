@@ -8,7 +8,8 @@
  * @package     Sebwite\Sidebar
  * @copyright   Copyright (c) 2015, Sebwite. All rights reserved
  */
-class Categories implements \Magento\Framework\Option\ArrayInterface {
+class Categories implements \Magento\Framework\Option\ArrayInterface
+{
 
     /**
      * Store categories cache
@@ -52,12 +53,12 @@ class Categories implements \Magento\Framework\Option\ArrayInterface {
         $this->_storeCategories[$cacheKey] = $storeCategories;
 
         $resultArray = [];
-        foreach($storeCategories as $category) {
+        foreach ($storeCategories as $category) {
             $resultArray[$category->getId()] = $category->getName();
         }
-		
-		$resultArray['current_category_children'] = __('Current Category Children');
-		$resultArray['current_category_parent_children'] = __('Current Category Parent Children');
+
+        $resultArray['current_category_children'] = __('Current Category Children');
+        $resultArray['current_category_parent_children'] = __('Current Category Parent Children');
 
         return $resultArray;
     }
