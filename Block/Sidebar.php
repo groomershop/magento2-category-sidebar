@@ -4,9 +4,26 @@ use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
 use Magento\Catalog\Model\ResourceModel\Product;
 use Magento\Framework\View\Element\Template;
 
+function array_get(&$array, $key)
+{
+    return array_key_exists($key, $array) ? $array[$key] : null;
+}
+
 function endsWith($haystack, $needle)
 {
     return substr_compare($haystack, $needle, -strlen($needle)) === 0;
+}
+
+function getParentParentIdFromCategoryPath($path)
+{
+    $pathArray = explode("/", $path);
+    return array_reverse($pathArray)[2] ?: null;
+}
+
+function getParentIdFromCategoryPath($path)
+{
+    $pathArray = explode("/", $path);
+    return array_reverse($pathArray)[1] ?: null;
 }
 
 /**
@@ -76,45 +93,60 @@ class Sidebar extends Template
     /**
      * Get all categories
      *
-     * @param bool $sorted
-     * @param bool $asCollection
-     * @param bool $toLoad
-     *
-     * @return array|\Magento\Catalog\Model\ResourceModel\Category\Collection|\Magento\Framework\Data\Tree\Node\Collection
+     * @return \Magento\Framework\Data\Tree\Node\Collection
      */
-    public function getCategories($sorted = false, $asCollection = false, $toLoad = true)
+    public function getCategories()
     {
-        $cacheKey = sprintf('%d-%d-%d-%d', $this->getSelectedRootCategoryId(), $sorted, $asCollection, $toLoad);
+        $currentCategory = $this->_coreRegistry->registry('current_category');
+        $currentCategoryId = $currentCategory ? $currentCategory->getId() : 1;
+
+        $cacheKey = sprintf('%d', $currentCategoryId);
         if (isset($this->_storeCategories[ $cacheKey ])) {
             return $this->_storeCategories[ $cacheKey ];
         }
 
-        /**
-         * Check if parent node of the store still exists
-         */
-        $categoryCollection = $this->_categoryFactory->create();
+        $rootCategoryId = $this->getRootCategoryId();
+        $collection = $this->_categoryFactory->create();
+        $depthLevel = $this->_dataHelper->getCategoryDepthLevel();
+        $categories = $collection->getCategories($rootCategoryId, $depthLevel)->getNodes();
 
-        $categoryDepthLevel = $this->_dataHelper->getCategoryDepthLevel();
+        if ($this->_dataHelper->getSidebarCategory() == 'current_category_parent_siblings_and_children') {
+            if (!$currentCategory) {
+                $categories = [];
+            } else {
+                $currentCategoryPath = $currentCategory->getPath();
+                $parentId = $currentCategoryPath ? getParentIdFromCategoryPath($currentCategoryPath) : null;
+                if (!$parentId || $parentId == 2 || $parentId == 1) {
+                    // In this case, there's no sense to show the parent, as it's "Default Category";
+                    // nor the parent siblings, as usually they are shown in the theme's main navigation anyways,
+                    // so we'll just show the current category and its' children.
+                    $rootCategory = array_get($categories, $currentCategoryId)
+                        ?: (
+                            array_get($categories, 2)
+                            ?: array_get($categories, 1)
+                        )->getAllChildNodes()[ $currentCategoryId ];
+                    $categories = [ $rootCategory ];
+                } else {
+                    $categories = [
+                        $categories[$parentId] ?: $categories[$currentCategoryId]
+                    ];
+                }
+            }
+        }
 
-        $storeCategories = $categoryCollection->getCategories($this->getSelectedRootCategoryId(), $recursionLevel = $categoryDepthLevel, $sorted, $asCollection, $toLoad);
+        $this->_storeCategories[ $cacheKey ] = $categories;
 
-        $this->_storeCategories[ $cacheKey ] = $storeCategories;
-
-        return $storeCategories;
+        return $categories;
     }
 
     /**
-     * getSelectedRootCategoryId method
-     *
      * @return int
      */
-    public function getSelectedRootCategoryId()
+    private function getRootCategoryId()
     {
-        $rootCategoryId = $this->_scopeConfig->getValue(
-            'sebwite_sidebar/general/category'
-        );
+        $sidebarCategory = $this->_dataHelper->getSidebarCategory();
 
-        if ($rootCategoryId == 'current_category_children') {
+        if ($sidebarCategory == 'current_category_children') {
             $currentCategory = $this->_coreRegistry->registry('current_category');
             if ($currentCategory) {
                 return $currentCategory->getId();
@@ -122,32 +154,18 @@ class Sidebar extends Template
             return 1;
         }
 
-        if ($rootCategoryId == 'current_category_parent_children') {
+        if ($sidebarCategory == 'current_category_parent_children'
+          || $sidebarCategory == 'current_category_parent_siblings_and_children') {
             $currentCategory = $this->_coreRegistry->registry('current_category');
-            if ($currentCategory) {
-                $currentCategoryPath = $currentCategory->getPath();
-                if (isset($currentCategoryPath)) {
-                    $currentCategoryPathArray = explode("/", $currentCategoryPath);
-                    $parentId = array_reverse($currentCategoryPathArray)[2] ?: 1;
-                    // If there's no parent, then show current category's children instead
-                    //
-                    // This is because in most shops the "Default Category" children
-                    // are shown in the header main navigation anyways,
-                    // So there's no big need of showing them here.
-                    if ($parentId == 1) {
-                        return $currentCategory->getId();
-                    }
-                    return $parentId;
-                }
-            }
-            return 1;
+            $currentCategoryPath = $currentCategory ? $currentCategory->getPath() : null;
+            // To get the current category's parent,
+            // we need to query for parent's parent's children.
+            // If not found, just use 1 to get all children of `Default Category`.
+            $parentParentId = $currentCategoryPath ? getParentParentIdFromCategoryPath($currentCategoryPath) : null;
+            return $parentParentId ?: 1;
         }
 
-        if ($rootCategoryId === null) {
-            return 1;
-        }
-
-        return $rootCategoryId;
+        return (int) $sidebarCategory ?: 1;
     }
 
     /**
