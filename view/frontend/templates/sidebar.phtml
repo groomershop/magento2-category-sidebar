@@ -42,7 +42,7 @@ function renderCategoryChildren($block, $category, $maxLevel, $level = 0)
 
     $html = '<ul class="o-list o-list--unstyled">';
     foreach ($childCategories as $childCategory) {
-        $html .= renderCategoryListElement($block, $childCategory, $level);
+        $html .= renderCategoryListElement($block, $childCategory, $maxLevel, $level);
     }
     $html .= '</ul>';
 
